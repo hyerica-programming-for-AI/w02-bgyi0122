@@ -1,0 +1,53 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Hello world
+      id: hello-world
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Hello world
+        setup-command: ''
+        command: python test.py
+        input: ''
+        expected-output: Hello world
+        comparison-method: exact
+        timeout: 10
+        max-score: 1
+    - name: Test file exists
+      id: test-file-exists
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test file exists
+        setup-command: ''
+        command: test -f test.py
+        timeout: 10
+        max-score: 1
+    - name: test file exists 2
+      id: test-file-exists-2
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: test file exists 2
+        setup-command: ''
+        command: test -f test2.py
+        timeout: 10
+        max-score: 1
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        HELLO-WORLD_RESULTS: "${{steps.hello-world.outputs.result}}"
+        TEST-FILE-EXISTS_RESULTS: "${{steps.test-file-exists.outputs.result}}"
+        TEST-FILE-EXISTS-2_RESULTS: "${{steps.test-file-exists-2.outputs.result}}"
+      with:
+        runners: hello-world,test-file-exists,test-file-exists-2
